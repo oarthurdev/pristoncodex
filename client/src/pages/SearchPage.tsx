@@ -90,10 +90,10 @@ export default function SearchPage() {
         case "relevance":
         default:
           // Simular relevância baseada na posição da palavra chave no título
-          const aTitle = (type === "downloads" ? a.name : a.title).toLowerCase();
-          const bTitle = (type === "downloads" ? b.name : b.title).toLowerCase();
-          const aIndex = aTitle.indexOf(searchTerm.toLowerCase());
-          const bIndex = bTitle.indexOf(searchTerm.toLowerCase());
+          const aTitleLower = (type === "downloads" ? a.name : a.title).toLowerCase();
+          const bTitleLower = (type === "downloads" ? b.name : b.title).toLowerCase();
+          const aIndex = aTitleLower.indexOf(searchTerm.toLowerCase());
+          const bIndex = bTitleLower.indexOf(searchTerm.toLowerCase());
           
           if (aIndex === -1 && bIndex === -1) return 0;
           if (aIndex === -1) return 1;
