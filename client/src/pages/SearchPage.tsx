@@ -31,7 +31,9 @@ export default function SearchPage() {
   useEffect(() => {
     const params = new URLSearchParams(location.split("?")[1] || "");
     const query = params.get("q") || "";
-    setSearchTerm(query);
+    if (query !== searchTerm) {
+      setSearchTerm(query);
+    }
   }, [location]);
 
   // Update URL when searchTerm changes (but avoid infinite loops)
@@ -64,8 +66,8 @@ export default function SearchPage() {
     queryKey: ["/api/categories"],
   });
 
-  // Filtrar resultados baseado na busca
-  const searchResults = searchTerm
+  // Filtrar resultados baseado na busca (mesmo sem searchTerm, mostra resultados se há dados)
+  const searchResults = searchTerm.trim()
     ? {
         posts:
           allPosts?.filter((post: any) => {
@@ -218,7 +220,7 @@ export default function SearchPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {searchTerm.trim() ? (
+        {searchTerm && searchTerm.trim() ? (
           <>
             {/* Search Results Header */}
             <div className="flex items-center justify-between mb-8">
