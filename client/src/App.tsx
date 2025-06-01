@@ -16,6 +16,13 @@ import ComunidadePage from "@/pages/ComunidadePage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import AdminPage from "@/pages/AdminPage";
+import ForumPage from "@/pages/ForumPage";
+import ContribuirPage from "@/pages/ContribuirPage";
+import ReportarBugPage from "@/pages/ReportarBugPage";
+import FAQPage from "@/pages/FAQPage";
+import ContatoPage from "@/pages/ContatoPage";
+import PoliticaPrivacidadePage from "@/pages/PoliticaPrivacidadePage";
+import TermosUsoPage from "@/pages/TermosUsoPage";
 import NotFoundPage from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/useAuth";
 
@@ -36,6 +43,13 @@ function AppRoutes() {
           <AdminPage />
         </ProtectedRoute>
       </Route>
+      <Route path="/forum" component={ForumPage} />
+      <Route path="/contribuir" component={ContribuirPage} />
+      <Route path="/reportar-bug" component={ReportarBugPage} />
+      <Route path="/faq" component={FAQPage} />
+      <Route path="/contato" component={ContatoPage} />
+      <Route path="/politica-privacidade" component={PoliticaPrivacidadePage} />
+      <Route path="/termos-uso" component={TermosUsoPage} />
       <Route component={NotFoundPage} />
     </Switch>
   );
