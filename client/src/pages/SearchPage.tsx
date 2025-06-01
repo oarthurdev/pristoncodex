@@ -32,12 +32,10 @@ export default function SearchPage() {
   // Buscar dados da API
   const { data: allPosts, isLoading: postsLoading } = useQuery({
     queryKey: ["/api/posts"],
-    enabled: !!searchTerm,
   });
 
   const { data: downloads, isLoading: downloadsLoading } = useQuery({
     queryKey: ["/api/downloads"],
-    enabled: !!searchTerm,
   });
 
   const { data: categories } = useQuery({
@@ -45,7 +43,7 @@ export default function SearchPage() {
   });
 
   // Filtrar resultados baseado na busca
-  const searchResults = {
+  const searchResults = searchTerm ? {
     posts: allPosts?.filter((post: any) => {
       const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,7 +66,7 @@ export default function SearchPage() {
       const matchesCategory = selectedCategory === "all" || post.categoryId === parseInt(selectedCategory);
       return hasVideo && matchesSearch && matchesCategory;
     }) || []
-  };
+  } : { posts: [], downloads: [], videos: [] };
 
   // Ordenar resultados
   const sortResults = (items: any[], type: string) => {
