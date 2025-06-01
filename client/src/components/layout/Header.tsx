@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useNavigate } from "wouter";
 import { Search, Menu, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,11 +32,13 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, isAdmin } = useAuth();
+    const navigate = useNavigate();
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/busca?q=${encodeURIComponent(searchQuery)}`;
+      navigate(`/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 

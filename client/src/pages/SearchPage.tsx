@@ -29,8 +29,14 @@ export default function SearchPage() {
     setSearchTerm(query);
   }, [location]);
 
-  const { data: searchResults, isLoading } = useQuery({
-    queryKey: ["/api/search", { query: searchTerm, category: selectedCategory }],
+  // Buscar dados da API
+  const { data: allPosts, isLoading: postsLoading } = useQuery({
+    queryKey: ["/api/posts"],
+    enabled: !!searchTerm,
+  });
+
+  const { data: downloads, isLoading: downloadsLoading } = useQuery({
+    queryKey: ["/api/downloads"],
     enabled: !!searchTerm,
   });
 
@@ -38,51 +44,73 @@ export default function SearchPage() {
     queryKey: ["/api/categories"],
   });
 
-  // Mock search results for demonstration
-  const mockResults = {
-    posts: [
-      {
-        id: 1,
-        title: "Guia Completo para Iniciantes",
-        excerpt: "Tudo que você precisa saber para começar no Priston Tale",
-        content: "Conteúdo detalhado do guia...",
-        imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-        slug: "guia-completo-iniciantes",
-        type: "tutorial",
-        views: 1250,
-        likes: 89,
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        authorId: 1
-      }
-    ],
-    downloads: [
-      {
-        id: 1,
-        name: "Source Code PT",
-        description: "Source code completo do Priston Tale",
-        fileName: "pt_source.zip",
-        fileSize: 125000000,
-        downloadCount: 2450,
-        downloadUrl: "/downloads/pt_source.zip",
-        createdAt: new Date().toISOString()
-      }
-    ],
-    videos: [
-      {
-        id: 1,
-        title: "Como Criar seu Primeiro Personagem",
-        description: "Tutorial completo para iniciantes sobre criação e customização de personagens",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        videoDuration: "12:34",
-        views: 15000,
-        createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-        imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"
-      }
-    ]
+  // Filtrar resultados baseado na busca
+  const searchResults = {
+    posts: allPosts?.filter((post: any) => {
+      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           post.content.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || post.categoryId === parseInt(selectedCategory);
+      return matchesSearch && matchesCategory;
+    }) || [],
+    
+    downloads: downloads?.filter((download: any) => {
+      const matchesSearch = download.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           download.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           download.fileName.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    }) || [],
+    
+    videos: allPosts?.filter((post: any) => {
+      const hasVideo = post.videoUrl;
+      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || post.categoryId === parseInt(selectedCategory);
+      return hasVideo && matchesSearch && matchesCategory;
+    }) || []
   };
 
-  const results = searchResults || mockResults;
-  const totalResults = (results.posts?.length || 0) + (results.downloads?.length || 0) + (results.videos?.length || 0);
+  // Ordenar resultados
+  const sortResults = (items: any[], type: string) => {
+    return [...items].sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "recent":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "popular":
+          if (type === "posts" || type === "videos") {
+            return (b.views || 0) - (a.views || 0);
+          } else if (type === "downloads") {
+            return (b.downloadCount || 0) - (a.downloadCount || 0);
+          }
+          return 0;
+        case "alphabetical":
+          const aTitle = type === "downloads" ? a.name : a.title;
+          const bTitle = type === "downloads" ? b.name : b.title;
+          return aTitle.localeCompare(bTitle);
+        case "relevance":
+        default:
+          // Simular relevância baseada na posição da palavra chave no título
+          const aTitle = (type === "downloads" ? a.name : a.title).toLowerCase();
+          const bTitle = (type === "downloads" ? b.name : b.title).toLowerCase();
+          const aIndex = aTitle.indexOf(searchTerm.toLowerCase());
+          const bIndex = bTitle.indexOf(searchTerm.toLowerCase());
+          
+          if (aIndex === -1 && bIndex === -1) return 0;
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+      }
+    });
+  };
+
+  const sortedResults = {
+    posts: sortResults(searchResults.posts, "posts"),
+    downloads: sortResults(searchResults.downloads, "downloads"),
+    videos: sortResults(searchResults.videos, "videos")
+  };
+
+  const totalResults = sortedResults.posts.length + sortedResults.downloads.length + sortedResults.videos.length;
+  const isLoading = postsLoading || downloadsLoading;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +121,10 @@ export default function SearchPage() {
   const clearSearch = () => {
     setSearchTerm("");
     window.history.pushState({}, '', '/buscar');
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('pt-BR');
   };
 
   return (
@@ -150,7 +182,7 @@ export default function SearchPage() {
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-48 bg-gray-800 border-gray-600 text-gray-300">
                     <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue />
+                    <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as Categorias</SelectItem>
@@ -231,53 +263,55 @@ export default function SearchPage() {
                   </TabsTrigger>
                   <TabsTrigger value="posts" className="flex items-center">
                     <FileText className="w-4 h-4 mr-2" />
-                    Artigos ({results.posts?.length || 0})
+                    Artigos ({sortedResults.posts.length})
                   </TabsTrigger>
                   <TabsTrigger value="downloads" className="flex items-center">
                     <Download className="w-4 h-4 mr-2" />
-                    Downloads ({results.downloads?.length || 0})
+                    Downloads ({sortedResults.downloads.length})
                   </TabsTrigger>
                   <TabsTrigger value="videos" className="flex items-center">
                     <Video className="w-4 h-4 mr-2" />
-                    Vídeos ({results.videos?.length || 0})
+                    Vídeos ({sortedResults.videos.length})
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="space-y-6 mt-6">
                   {/* Mixed results */}
                   <div className="space-y-6">
-                    {results.posts?.slice(0, 3).map((post: any) => (
+                    {sortedResults.posts.slice(0, 3).map((post: any) => (
                       <div key={`post-${post.id}`} className="mb-4">
                         <Badge className="bg-blue-600 text-white mb-2">ARTIGO</Badge>
                         <PostCard post={post} compact />
                       </div>
                     ))}
                     
-                    {results.downloads?.slice(0, 2).map((download: any) => (
+                    {sortedResults.downloads.slice(0, 2).map((download: any) => (
                       <div key={`download-${download.id}`} className="mb-4">
                         <Badge className="bg-green-600 text-white mb-2">DOWNLOAD</Badge>
                         <DownloadCard download={download} />
                       </div>
                     ))}
                     
-                    {results.videos?.slice(0, 2).map((video: any) => (
+                    {sortedResults.videos.slice(0, 2).map((video: any) => (
                       <div key={`video-${video.id}`} className="mb-4">
                         <Badge className="bg-red-600 text-white mb-2">VÍDEO</Badge>
                         <Card className="bg-slate-800 border-gray-700">
                           <CardContent className="p-4">
                             <div className="flex items-start space-x-4">
                               <img
-                                src={video.imageUrl}
+                                src={video.imageUrl || "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"}
                                 alt={video.title}
                                 className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
                               />
                               <div className="flex-1">
                                 <h3 className="font-semibold text-white mb-1">{video.title}</h3>
-                                <p className="text-gray-400 text-sm mb-2">{video.description}</p>
+                                <p className="text-gray-400 text-sm mb-2">{video.excerpt}</p>
                                 <div className="flex items-center text-gray-400 text-sm">
-                                  <span>{video.videoDuration}</span>
+                                  <span>{video.videoDuration || "15:00"}</span>
                                   <span className="mx-2">•</span>
-                                  <span>{video.views.toLocaleString()} visualizações</span>
+                                  <span>{(video.views || 0).toLocaleString()} visualizações</span>
+                                  <span className="mx-2">•</span>
+                                  <span>{formatDate(video.createdAt)}</span>
                                 </div>
                               </div>
                             </div>
@@ -290,7 +324,7 @@ export default function SearchPage() {
 
                 <TabsContent value="posts" className="space-y-6 mt-6">
                   <div className="grid grid-cols-1 gap-6">
-                    {results.posts?.map((post: any) => (
+                    {sortedResults.posts.map((post: any) => (
                       <PostCard key={post.id} post={post} compact />
                     ))}
                   </div>
@@ -298,7 +332,7 @@ export default function SearchPage() {
 
                 <TabsContent value="downloads" className="space-y-6 mt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {results.downloads?.map((download: any) => (
+                    {sortedResults.downloads.map((download: any) => (
                       <DownloadCard key={download.id} download={download} />
                     ))}
                   </div>
@@ -306,21 +340,21 @@ export default function SearchPage() {
 
                 <TabsContent value="videos" className="space-y-6 mt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {results.videos?.map((video: any) => (
+                    {sortedResults.videos.map((video: any) => (
                       <Card key={video.id} className="bg-slate-800 border-gray-700">
                         <CardContent className="p-4">
                           <div className="aspect-video mb-4">
                             <img
-                              src={video.imageUrl}
+                              src={video.imageUrl || "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"}
                               alt={video.title}
                               className="w-full h-full object-cover rounded-lg"
                             />
                           </div>
                           <h3 className="font-semibold text-white mb-2">{video.title}</h3>
-                          <p className="text-gray-400 text-sm mb-3">{video.description}</p>
+                          <p className="text-gray-400 text-sm mb-3">{video.excerpt}</p>
                           <div className="flex justify-between items-center text-gray-400 text-sm">
-                            <span>{video.videoDuration}</span>
-                            <span>{video.views.toLocaleString()} views</span>
+                            <span>{video.videoDuration || "15:00"}</span>
+                            <span>{(video.views || 0).toLocaleString()} views</span>
                           </div>
                         </CardContent>
                       </Card>

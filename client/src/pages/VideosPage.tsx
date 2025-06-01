@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import VideoCard from "@/components/content/VideoCard";
-import { Search, Play, Clock, Eye, Calendar } from "lucide-react";
+import PostCard from "@/components/content/PostCard";
+import { Search, Play, Clock, Eye, Calendar, Video } from "lucide-react";
 import { useState } from "react";
 
 export default function VideosPage() {
@@ -17,90 +17,44 @@ export default function VideosPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
 
-  // Mock video data (would come from API in real implementation)
-  const mockVideos = [
-    {
-      id: 1,
-      title: "Como Criar seu Primeiro Personagem",
-      description: "Tutorial completo para iniciantes sobre criação e customização de personagens no Priston Tale",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoDuration: "12:34",
-      views: 15000,
-      createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-      category: "iniciante"
-    },
-    {
-      id: 2,
-      title: "Configuração Inicial do Servidor",
-      description: "Passo a passo para configurar seu primeiro servidor Priston Tale local",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoDuration: "28:15",
-      views: 8200,
-      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-      category: "desenvolvimento"
-    },
-    {
-      id: 3,
-      title: "Sistema de Classes e Habilidades",
-      description: "Entenda como funciona o sistema de classes e como maximizar suas habilidades",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoDuration: "18:42",
-      views: 12300,
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-      category: "intermediario"
-    },
-    {
-      id: 4,
-      title: "Modificando Source Code - Parte 1",
-      description: "Aprenda a fazer suas primeiras modificações no source code do servidor",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoDuration: "35:18",
-      views: 6700,
-      createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-      category: "avancado"
-    },
-    {
-      id: 5,
-      title: "Estratégias de PvP Avançadas",
-      description: "Técnicas avançadas para dominar o PvP e se tornar um guerreiro temível",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoDuration: "22:09",
-      views: 9800,
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: "https://images.unsplash.com/photo-1560253023-3ec5d502959f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-      category: "avancado"
-    },
-    {
-      id: 6,
-      title: "Instalação e Configuração Completa",
-      description: "Guia completo de instalação do jogo e configuração para melhor performance",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoDuration: "16:27",
-      views: 18500,
-      createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300",
-      category: "iniciante"
-    }
-  ];
+  // Buscar posts que sejam do tipo vídeo
+  const { data: allPosts, isLoading: postsLoading } = useQuery({
+    queryKey: ["/api/posts"],
+  });
 
-  const { data: categories } = useQuery({
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ["/api/categories"],
   });
 
-  const filteredVideos = mockVideos.filter((video) => {
+  // Filtrar apenas posts que tenham videoUrl (são vídeos)
+  const videos = allPosts?.filter((post: any) => post.videoUrl) || [];
+
+  const filteredVideos = videos.filter((video: any) => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || video.category === selectedCategory;
+                         video.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || video.categoryId === parseInt(selectedCategory);
     return matchesSearch && matchesCategory;
+  });
+
+  // Ordenar vídeos
+  const sortedVideos = [...filteredVideos].sort((a: any, b: any) => {
+    switch (sortBy) {
+      case "popular":
+        return b.views - a.views;
+      case "alphabetical":
+        return a.title.localeCompare(b.title);
+      case "recent":
+      default:
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
   });
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('pt-BR');
   };
+
+  const totalViews = videos.reduce((acc: number, video: any) => acc + (video.views || 0), 0);
+  const totalDuration = videos.length * 15; // Estimativa de 15 min por vídeo
 
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100">
@@ -141,14 +95,15 @@ export default function VideosPage() {
             <div className="flex items-center space-x-4">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-600 text-gray-300">
-                  <SelectValue />
+                  <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Categorias</SelectItem>
-                  <SelectItem value="iniciante">Iniciante</SelectItem>
-                  <SelectItem value="intermediario">Intermediário</SelectItem>
-                  <SelectItem value="avancado">Avançado</SelectItem>
-                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
+                  {categories?.map((category: any) => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               
@@ -159,7 +114,6 @@ export default function VideosPage() {
                 <SelectContent>
                   <SelectItem value="recent">Mais Recentes</SelectItem>
                   <SelectItem value="popular">Mais Populares</SelectItem>
-                  <SelectItem value="duration">Duração</SelectItem>
                   <SelectItem value="alphabetical">Ordem Alfabética</SelectItem>
                 </SelectContent>
               </Select>
@@ -172,7 +126,7 @@ export default function VideosPage() {
           <Card className="bg-slate-800 border-gray-700">
             <CardContent className="p-4 text-center">
               <Play className="w-8 h-8 text-red-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{mockVideos.length}</div>
+              <div className="text-2xl font-bold text-white">{videos.length}</div>
               <div className="text-gray-400 text-sm">Vídeos</div>
             </CardContent>
           </Card>
@@ -181,7 +135,7 @@ export default function VideosPage() {
             <CardContent className="p-4 text-center">
               <Eye className="w-8 h-8 text-blue-400 mx-auto mb-2" />
               <div className="text-2xl font-bold text-white">
-                {mockVideos.reduce((acc, video) => acc + video.views, 0).toLocaleString()}
+                {totalViews.toLocaleString()}
               </div>
               <div className="text-gray-400 text-sm">Visualizações</div>
             </CardContent>
@@ -190,7 +144,7 @@ export default function VideosPage() {
           <Card className="bg-slate-800 border-gray-700">
             <CardContent className="p-4 text-center">
               <Clock className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">12h</div>
+              <div className="text-2xl font-bold text-white">{Math.round(totalDuration / 60)}h</div>
               <div className="text-gray-400 text-sm">Conteúdo Total</div>
             </CardContent>
           </Card>
@@ -198,64 +152,87 @@ export default function VideosPage() {
           <Card className="bg-slate-800 border-gray-700">
             <CardContent className="p-4 text-center">
               <Calendar className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">2</div>
-              <div className="text-gray-400 text-sm">Novos/Semana</div>
+              <div className="text-2xl font-bold text-white">
+                {categories?.length || 0}
+              </div>
+              <div className="text-gray-400 text-sm">Categorias</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Featured Video */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Vídeo em Destaque</h2>
-          <Card className="bg-slate-800 border-gray-700 overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="aspect-video lg:aspect-auto">
-                <img
-                  src={mockVideos[0].imageUrl}
-                  alt={mockVideos[0].title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-6">
-                <Badge className="bg-red-600 text-white mb-3">EM DESTAQUE</Badge>
-                <h3 className="text-2xl font-bold text-white mb-3">{mockVideos[0].title}</h3>
-                <p className="text-gray-300 mb-4">{mockVideos[0].description}</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-400 mb-4">
-                  <span className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {mockVideos[0].videoDuration}
-                  </span>
-                  <span className="flex items-center">
-                    <Eye className="w-4 h-4 mr-1" />
-                    {mockVideos[0].views.toLocaleString()}
-                  </span>
-                  <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {formatDate(mockVideos[0].createdAt)}
-                  </span>
+        {sortedVideos.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Vídeo em Destaque</h2>
+            <Card className="bg-slate-800 border-gray-700 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="aspect-video lg:aspect-auto">
+                  <img
+                    src={sortedVideos[0].imageUrl || "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"}
+                    alt={sortedVideos[0].title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <Button className="bg-red-600 hover:bg-red-700 text-white">
-                  <Play className="w-4 h-4 mr-2" />
-                  Assistir Agora
-                </Button>
-              </CardContent>
-            </div>
-          </Card>
-        </div>
+                <CardContent className="p-6">
+                  <Badge className="bg-red-600 text-white mb-3">EM DESTAQUE</Badge>
+                  <h3 className="text-2xl font-bold text-white mb-3">{sortedVideos[0].title}</h3>
+                  <p className="text-gray-300 mb-4">{sortedVideos[0].excerpt}</p>
+                  <div className="flex items-center space-x-4 text-sm text-gray-400 mb-4">
+                    <span className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {sortedVideos[0].videoDuration || "15:00"}
+                    </span>
+                    <span className="flex items-center">
+                      <Eye className="w-4 h-4 mr-1" />
+                      {(sortedVideos[0].views || 0).toLocaleString()}
+                    </span>
+                    <span className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      {formatDate(sortedVideos[0].createdAt)}
+                    </span>
+                  </div>
+                  <Button className="bg-red-600 hover:bg-red-700 text-white">
+                    <Play className="w-4 h-4 mr-2" />
+                    Assistir Agora
+                  </Button>
+                </CardContent>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Videos Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-white mb-6">
-            Todos os Vídeos ({filteredVideos.length})
+            Todos os Vídeos ({sortedVideos.length})
           </h2>
           
-          {filteredVideos.length === 0 ? (
+          {postsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="bg-slate-800 border-gray-700">
+                  <Skeleton className="aspect-video w-full" />
+                  <CardContent className="p-4">
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-3 w-3/4 mb-4" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : sortedVideos.length === 0 ? (
             <Card className="bg-slate-800 border-gray-700">
               <CardContent className="p-12 text-center">
-                <div className="text-6xl mb-4">🔍</div>
+                <div className="text-6xl mb-4">🎥</div>
                 <h3 className="text-xl font-bold text-white mb-2">Nenhum vídeo encontrado</h3>
                 <p className="text-gray-400 mb-6">
-                  Tente ajustar os filtros ou termos de busca.
+                  {searchTerm 
+                    ? "Tente ajustar os filtros ou termos de busca."
+                    : "Ainda não há vídeos disponíveis."
+                  }
                 </p>
                 <Button 
                   onClick={() => {
@@ -270,8 +247,33 @@ export default function VideosPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredVideos.slice(1).map((video) => (
-                <VideoCard key={video.id} video={video} />
+              {sortedVideos.slice(1).map((video: any) => (
+                <Card key={video.id} className="bg-slate-800 border-gray-700 hover:border-violet-400 transition-colors">
+                  <div className="relative">
+                    <img
+                      src={video.imageUrl || "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300"}
+                      alt={video.title}
+                      className="w-full aspect-video object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <Play className="w-12 h-12 text-white" />
+                    </div>
+                    <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                      {video.videoDuration || "15:00"}
+                    </div>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-white mb-2 line-clamp-2">{video.title}</h3>
+                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{video.excerpt}</p>
+                    <div className="flex justify-between items-center text-gray-400 text-sm">
+                      <span className="flex items-center">
+                        <Eye className="w-3 h-3 mr-1" />
+                        {(video.views || 0).toLocaleString()}
+                      </span>
+                      <span>{formatDate(video.createdAt)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
@@ -288,7 +290,7 @@ export default function VideosPage() {
             </p>
             <div className="flex justify-center space-x-4">
               <Button className="bg-red-600 hover:bg-red-700 text-white">
-                <Play className="w-4 h-4 mr-2" />
+                <Video className="w-4 h-4 mr-2" />
                 Canal no YouTube
               </Button>
               <Button variant="outline" className="border-gray-600 text-gray-300 hover:border-red-400 hover:text-red-400">
