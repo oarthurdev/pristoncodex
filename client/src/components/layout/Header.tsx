@@ -35,7 +35,7 @@ export default function Header() {
 
   // Sync search query with URL params when on search page
   useEffect(() => {
-    if (location.startsWith('/buscar')) {
+    if (location.startsWith("/buscar")) {
       const params = new URLSearchParams(location.split("?")[1] || "");
       const query = params.get("q") || "";
       setSearchQuery(query);
@@ -181,9 +181,7 @@ export default function Header() {
                       </>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
-                      Sair
-                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
                   </>
                 ) : (
                   <>

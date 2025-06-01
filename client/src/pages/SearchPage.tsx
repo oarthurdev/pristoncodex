@@ -27,29 +27,12 @@ export default function SearchPage() {
   const [sortBy, setSortBy] = useState("relevance");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Get search query from URL params and trigger search
+  // Get search query from URL params
   useEffect(() => {
     const params = new URLSearchParams(location.split("?")[1] || "");
     const query = params.get("q") || "";
     setSearchTerm(query);
   }, [location]);
-
-  // Update URL when searchTerm changes (but avoid infinite loops)
-  useEffect(() => {
-    if (searchTerm.trim()) {
-      const params = new URLSearchParams(location.split("?")[1] || "");
-      const currentQuery = params.get("q") || "";
-      
-      // Only update URL if the searchTerm is different from current URL param
-      if (currentQuery !== searchTerm.trim()) {
-        window.history.replaceState(
-          {},
-          "",
-          `/buscar?q=${encodeURIComponent(searchTerm.trim())}`,
-        );
-      }
-    }
-  }, [searchTerm, location]);
 
   // Buscar dados da API
   const { data: allPosts, isLoading: postsLoading } = useQuery({
@@ -65,7 +48,7 @@ export default function SearchPage() {
   });
 
   // Filtrar resultados baseado na busca
-  const searchResults = searchTerm && searchTerm.trim()
+  const searchResults = searchTerm
     ? {
         posts:
           allPosts?.filter((post: any) => {
@@ -159,14 +142,12 @@ export default function SearchPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      // Update URL with search query
-      window.history.pushState(
-        {},
-        "",
-        `/buscar?q=${encodeURIComponent(searchTerm.trim())}`,
-      );
-    }
+    // Update URL with search query
+    window.history.pushState(
+      {},
+      "",
+      `/buscar?q=${encodeURIComponent(searchTerm)}`,
+    );
   };
 
   const clearSearch = () => {
@@ -218,7 +199,7 @@ export default function SearchPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {searchTerm && searchTerm.trim() ? (
+        {searchTerm ? (
           <>
             {/* Search Results Header */}
             <div className="flex items-center justify-between mb-8">
