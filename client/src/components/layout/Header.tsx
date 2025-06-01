@@ -44,7 +44,11 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-6 h-6 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -55,11 +59,14 @@ export default function Header() {
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link href="/" className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2">
+                <Link
+                  href="/"
+                  className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2"
+                >
                   Início
                 </Link>
               </NavigationMenuItem>
-              
+
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="text-gray-300 hover:text-violet-400 transition-colors">
                   Guias
@@ -80,19 +87,28 @@ export default function Header() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/downloads" className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2">
+                <Link
+                  href="/downloads"
+                  className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2"
+                >
                   Downloads
                 </Link>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/videos" className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2">
+                <Link
+                  href="/videos"
+                  className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2"
+                >
                   Vídeos
                 </Link>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/comunidade" className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2">
+                <Link
+                  href="/comunidade"
+                  className="text-gray-300 hover:text-violet-400 transition-colors px-3 py-2"
+                >
                   Comunidade
                 </Link>
               </NavigationMenuItem>
@@ -114,7 +130,11 @@ export default function Header() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-gray-300 hover:text-violet-400">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-300 hover:text-violet-400"
+                >
                   <User className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -123,7 +143,7 @@ export default function Header() {
                   <Link href="/login">Entrar</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/registro">Registrar</Link>
+                  <Link href="/register">Registrar</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -131,16 +151,26 @@ export default function Header() {
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-gray-300 hover:text-violet-400">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden text-gray-300 hover:text-violet-400"
+                >
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-slate-800 border-gray-700">
+              <SheetContent
+                side="right"
+                className="bg-slate-800 border-gray-700"
+              >
                 <div className="flex flex-col space-y-4 mt-8">
-                  <Link href="/" className="text-gray-300 hover:text-violet-400 transition-colors">
+                  <Link
+                    href="/"
+                    className="text-gray-300 hover:text-violet-400 transition-colors"
+                  >
                     Início
                   </Link>
-                  
+
                   <div className="space-y-2">
                     <h3 className="text-gray-400 font-medium">Guias</h3>
                     {categories.map((category) => (
@@ -153,16 +183,25 @@ export default function Header() {
                       </Link>
                     ))}
                   </div>
-                  
-                  <Link href="/downloads" className="text-gray-300 hover:text-violet-400 transition-colors">
+
+                  <Link
+                    href="/downloads"
+                    className="text-gray-300 hover:text-violet-400 transition-colors"
+                  >
                     Downloads
                   </Link>
-                  
-                  <Link href="/videos" className="text-gray-300 hover:text-violet-400 transition-colors">
+
+                  <Link
+                    href="/videos"
+                    className="text-gray-300 hover:text-violet-400 transition-colors"
+                  >
                     Vídeos
                   </Link>
-                  
-                  <Link href="/comunidade" className="text-gray-300 hover:text-violet-400 transition-colors">
+
+                  <Link
+                    href="/comunidade"
+                    className="text-gray-300 hover:text-violet-400 transition-colors"
+                  >
                     Comunidade
                   </Link>
 
