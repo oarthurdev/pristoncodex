@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "wouter";
+import { Redirect } from "wouter";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ export default function ProtectedRoute({ children, adminOnly = false }: Protecte
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Redirect to="/login" replace />;
   }
 
   if (adminOnly && user.permissionLevel !== "admin") {
