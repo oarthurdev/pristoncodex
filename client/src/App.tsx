@@ -3,17 +3,20 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
+import ProtectedRoute from "@/components/ProtectedRoute";
+
+// Pages
 import HomePage from "@/pages/HomePage";
 import PostPage from "@/pages/PostPage";
 import CategoryPage from "@/pages/CategoryPage";
 import DownloadsPage from "@/pages/DownloadsPage";
-import AdminPage from "@/pages/AdminPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import AdminPage from "@/pages/AdminPage";
+import NotFoundPage from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/useAuth";
 
-function Router() {
+function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={HomePage} />
@@ -22,9 +25,12 @@ function Router() {
       <Route path="/downloads" component={DownloadsPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={RegisterPage} />
-      <Route path="/admin" component={AdminPage} />
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
+      <Route path="/admin">
+        <ProtectedRoute adminOnly={true}>
+          <AdminPage />
+        </ProtectedRoute>
+      </Route>
+      <Route component={NotFoundPage} />
     </Switch>
   );
 }
@@ -35,7 +41,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <AppRoutes />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

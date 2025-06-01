@@ -7,8 +7,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -29,6 +31,7 @@ export default function Header() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout, isAdmin } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,12 +142,36 @@ export default function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <Link href="/login">Entrar</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/register">Registrar</Link>
-                </DropdownMenuItem>
+                {user ? (
+                  <>
+                    <DropdownMenuItem disabled>
+                      <span className="text-violet-400 font-medium">
+                        {user.username}
+                      </span>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <Link href="/admin">Painel Admin</Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout}>
+                      Sair
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem>
+                      <Link href="/login">Entrar</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/register">Registrar</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -214,6 +241,45 @@ export default function Header() {
                       className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     />
                   </form>
+
+                  <div className="border-t border-gray-700 pt-4 mt-4">
+                    {user ? (
+                      <div className="space-y-4">
+                        <div className="text-violet-400 font-medium">
+                          Olá, {user.username}
+                        </div>
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            className="block text-gray-300 hover:text-violet-400 transition-colors"
+                          >
+                            Painel Admin
+                          </Link>
+                        )}
+                        <button
+                          onClick={logout}
+                          className="block text-gray-300 hover:text-violet-400 transition-colors"
+                        >
+                          Sair
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Link
+                          href="/login"
+                          className="block text-gray-300 hover:text-violet-400 transition-colors"
+                        >
+                          Entrar
+                        </Link>
+                        <Link
+                          href="/register"
+                          className="block text-gray-300 hover:text-violet-400 transition-colors"
+                        >
+                          Registrar
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
