@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Search, Menu, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,12 +33,25 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, isAdmin } = useAuth();
 
+  // Sync search query with URL params when on search page
+  useEffect(() => {
+    if (location.startsWith('/buscar')) {
+      const params = new URLSearchParams(location.split("?")[1] || "");
+      const query = params.get("q") || "";
+      setSearchQuery(query);
+    }
+  }, [location]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    navigate("/buscar");
   };
 
   return (
@@ -127,9 +140,18 @@ export default function Header() {
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 w-64 pl-10"
+                className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 w-64 pl-10 pr-10"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </form>
 
             <DropdownMenu>
@@ -239,8 +261,17 @@ export default function Header() {
                       placeholder="Buscar..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 pr-10"
                     />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={clearSearch}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
                   </form>
 
                   <div className="border-t border-gray-700 pt-4 mt-4">
